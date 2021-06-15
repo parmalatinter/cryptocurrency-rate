@@ -2,6 +2,51 @@ var e = React.createElement;
 const ENABLE_FILTER_NAME = "PRICE_FILTER";
 const COIN_NAME = "1INCHUSDT";
 
+var glovalState = {};
+
+class Input extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {value: COIN_NAME};
+        glovalState['value'] = COIN_NAME;
+
+        // This binding is necessary to make `this` work in the callback
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange() {
+        // render rates
+        this.setState({value: event.target.value});
+        glovalState['value'] = event.target.value;
+    }
+
+    render() {
+        return e('input', { type : 'text', onChange : this.handleChange, value: this.state.value});
+    }
+}
+
+class Button extends React.Component {
+    constructor(props) {
+        super(props);
+        // this.state = {isToggleOn: true};
+
+        // This binding is necessary to make `this` work in the callback
+        this.handleClick = this.handleClick.bind(this);
+    }
+
+    handleClick() {
+        // render rates
+        ReactDOM.render(
+            e(RowView, null),
+            document.getElementById('root2')
+        );
+    }
+
+    render() {
+        return e('button', { onClick : this.handleClick}, `Search`);
+    }
+}
+
 class RowView extends React.Component {
     constructor(props) {
         super(props);
@@ -16,7 +61,7 @@ class RowView extends React.Component {
         var instance = this;
         // for api get
         $.ajax({
-            url: 'file:///C:/Users/Administrator/Desktop/test/klines.json',
+            url: 'file:///C:/Users/Administrator/Desktop/test/klines.json?test=' + glovalState['value'],
             // url: 'https://api.binance.com/api/v3/ticker/price?symbol=1INCHUSDT',
             // url: 'https://api.binance.com/api/v3/klines?symbol=1INCHUSDT&interval=1d',
             dataType: 'json',
@@ -50,10 +95,10 @@ class RowView extends React.Component {
                 var dateString = date.toLocaleDateString('ja-JP');
                 return  e('tr', { id : index++, key : index}, [
                     e('td', { key : dateString + index}, `${dateString}`),
-                    e('td', { key : row[1] + index + 'Open'}, `,${row[1]}`),
-                    e('td', { key : row[2] + index + 'High'}, `,${row[2]}`),
-                    e('td', { key : row[3] + index + 'Low'}, `,${row[3]}`),
-                    e('td', { key : row[4] + index + 'Close'}, `,${row[4]}`)
+                    e('td', { key : row[1] + index + 'Open'}, `\t${row[1]}`),
+                    e('td', { key : row[2] + index + 'High'}, `\t${row[2]}`),
+                    e('td', { key : row[3] + index + 'Low'}, `\t${row[3]}`),
+                    e('td', { key : row[4] + index + 'Close'}, `\t${row[4]}`)
                 ]);
             });
         }
@@ -61,8 +106,8 @@ class RowView extends React.Component {
 }
 
 ReactDOM.render(
-    e(RowView, null),
-    document.getElementById('root')
+    [e(Input, null), e(Button, null) ],
+    document.getElementById('root1')
 );
 
 // [
