@@ -16,8 +16,7 @@ class RowView extends React.Component {
         var instance = this;
         // for api get
         $.ajax({
-            url: 'file:///C:/Users/Administrator/Desktop/new/klines.json',
-            // url: 'https://jsonplaceholder.typicode.com/users',
+            url: 'file:///C:/Users/Administrator/Desktop/test/klines.json',
             // url: 'https://api.binance.com/api/v3/ticker/price?symbol=1INCHUSDT',
             // url: 'https://api.binance.com/api/v3/klines?symbol=1INCHUSDT&interval=1d',
             dataType: 'json',
@@ -45,22 +44,18 @@ class RowView extends React.Component {
             return e('div', null, `Loading...`);
         }
         else {
-            return e('table', null,
-                e('tbody', null,
-                    this.state.rows.map( row => {
-                        var index = 1;
-                        var date = new Date(row[0]*1000);
-                        var dateString = date.toLocaleDateString("en-US");
-                        return  e('tr', { id : index++, key : index}, [
-                                    e('td', { key : dateString + index}, `${dateString}`),
-                                    e('td', { key : row[1] + index + 'Open'}, `,${row[1]}`),
-                                    e('td', { key : row[2] + index + 'High'}, `,${row[2]}`),
-                                    e('td', { key : row[3] + index + 'Low'}, `,${row[3]}`),
-                                    e('td', { key : row[4] + index + 'Close'}, `,${row[4]}`)
-                                ]);
-                    })
-                )
-            );
+            return this.state.rows.map( row => {
+                var index = 1;
+                var date = new Date(row[0]*1000);
+                var dateString = date.toLocaleDateString("en-US");
+                return  e('tr', { id : index++, key : index}, [
+                    e('td', { key : dateString + index}, `${dateString}`),
+                    e('td', { key : row[1] + index + 'Open'}, `,${row[1]}`),
+                    e('td', { key : row[2] + index + 'High'}, `,${row[2]}`),
+                    e('td', { key : row[3] + index + 'Low'}, `,${row[3]}`),
+                    e('td', { key : row[4] + index + 'Close'}, `,${row[4]}`)
+                ]);
+            });
         }
     }
 }
