@@ -1,9 +1,9 @@
 var e = React.createElement;
-const ENABLE_FILTER_NAME = "PRICE_FILTER";
 const COIN_NAME = "1INCHUSDT";
 
 var glovalState = {};
 
+// search
 class Input extends React.Component {
     constructor(props) {
         super(props);
@@ -21,7 +21,10 @@ class Input extends React.Component {
     }
 
     render() {
-        return e('input', { type : 'text', onChange : this.handleChange, value: this.state.value});
+        return [
+            e('label', { for : 'pair'}, `Pair：`),
+            e('input', { type : 'text', onChange : this.handleChange, value: this.state.value, name: 'pair'})
+        ];
     }
 }
 
@@ -43,7 +46,53 @@ class Button extends React.Component {
     }
 
     render() {
-        return e('button', { onClick : this.handleClick}, `Search`);
+        return [
+            e('button', { onClick : this.handleClick}, `Search`),
+            e('br', null)
+        ];
+    }
+}
+
+// CSV Load
+class CsvInput extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {files: []};
+        glovalState['files'] = [];
+
+        // This binding is necessary to make `this` work in the callback
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange() {
+        // render rates
+        this.setState({value: event.target.files});
+        glovalState['files'] = event.target.files;
+    }
+
+    render() {
+        return [
+            e('label', { for : 'csv'}, `csv：`),
+            e('input', { type : 'file', onChange : this.handleChange, filename: this.state.value, name: 'csv'})
+        ];
+    }
+}
+
+class CsvButton extends React.Component {
+    constructor(props) {
+        super(props);
+        // this.state = {isToggleOn: true};
+
+        // This binding is necessary to make `this` work in the callback
+        this.handleClick = this.handleClick.bind(this);
+    }
+
+    handleClick() {
+        // render rates
+    }
+
+    render() {
+        return e('button', { onClick : this.handleClick}, `Set`);
     }
 }
 
@@ -106,7 +155,10 @@ class RowView extends React.Component {
 }
 
 ReactDOM.render(
-    [e(Input, null), e(Button, null) ],
+    [
+        e(Input, null), e(Button, null),
+        e(CsvInput, null), e(CsvButton, null)
+    ],
     document.getElementById('root1')
 );
 
