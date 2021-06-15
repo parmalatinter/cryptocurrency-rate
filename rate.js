@@ -47,7 +47,7 @@ class RowView extends React.Component {
             return this.state.rows.map( row => {
                 var index = 1;
                 var date = new Date(row[0]*1000);
-                var dateString = date.toLocaleDateString("en-US");
+                var dateString = date.toLocaleDateString('ja-JP');
                 return  e('tr', { id : index++, key : index}, [
                     e('td', { key : dateString + index}, `${dateString}`),
                     e('td', { key : row[1] + index + 'Open'}, `,${row[1]}`),
