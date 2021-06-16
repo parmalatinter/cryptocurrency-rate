@@ -1,0 +1,22 @@
+{
+  "quotes":[
+    {
+      "date": 1499644799999,
+      "high":"110.13",
+      "open":"110.00",
+      "bid":"110.12",
+      "currencyPairCode":"USDJPY",
+      "ask":"110.13",
+      "low":"110.00"
+    },
+    {
+      "date": 1499959799999,
+      "high":"111.13",
+      "open":"111.00",
+      "bid":"111.12",
+      "currencyPairCode":"USDJPY",
+      "ask":"111.13",
+      "low":"111.00"
+    }
+  ]
+}
