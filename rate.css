@@ -1,0 +1,19 @@
+table, th, td {
+  border-collapse: collapse;
+  border: 1px solid #ccc;
+  line-height: 1.5;
+}
+
+table th {
+  width: 150px;
+  padding: 10px;
+  font-weight: bold;
+  vertical-align: top;
+  background: #3f3f3f;
+  color: #ffffff;
+}
+table td {
+  width: 350px;
+  padding: 10px;
+  vertical-align: top;
+}
