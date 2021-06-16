@@ -227,6 +227,7 @@ class RowView extends React.Component {
                     e('th', { key : 'th_Rate'}, 'Rate'),
                     e('th', { key : 'th_Buy'}, 'Buy'),
                     e('th', { key : 'th_Sell'}, 'Sell'),
+                    e('th', { key : 'th_Fee'}, 'Fee'),
                     e('th', { key : 'th_Mining'}, 'Mining'),
                 ])
             ]),
@@ -249,6 +250,7 @@ class RowView extends React.Component {
                 e('td', { key : row.index + 'rate'}, `${cryptRow.open}\$ \\${cryptRow.open * currencyRate}`),
                 e('td', { key : row.index + 'buy'}, `\tStock : ${row.buy}\t (\\${row.buy * currencyRate * cryptRow.open})`),
                 e('td', { key : row.index + 'sell'}, `\tStock : ${row.sell}\t (\\${row.sell * currencyRate * cryptRow.open})`),
+                e('td', { key : row.index + 'fee'}, `\t${row.fee}%\t (\\${row.fee * currencyRate * cryptRow.open * (row.buy + row.sell)})`),
                 e('td', { key : row.index + 'mining'}, `\tStock : ${row.mining}\t (\\${row.mining * currencyRate * cryptRow.open})`),
             ]);
         });
