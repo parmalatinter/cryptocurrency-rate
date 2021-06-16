@@ -1,8 +1,8 @@
-let e = React.createElement;
+var e = React.createElement;
 const ENABLE_FILTER_NAME = "PRICE_FILTER";
 const COIN_NAME = "1INCHUSDT";
 // const ExCHANGE_PARE_INDEX = 20; //usd/jpy
-let glovalState = {
+var glovalState = {
     fxRow : null,
     cryptRows : null,
     csvData : null,
@@ -71,7 +71,7 @@ class CsvInput extends React.Component {
     }
 
     convertRow(data){
-        var result = [];
+        let result = [];
         data.filter(row =>{
             row.index = parseInt(row.index);
             if(Number.isInteger(row.index)){
@@ -86,7 +86,7 @@ class CsvInput extends React.Component {
 
     getCSV (file) {
         return new Promise(resolve =>{
-            var buf;
+            let buf;
             Papa.parse(file, {
                 header: true,
                 delimiter:',',
@@ -128,7 +128,7 @@ class RowView extends React.Component {
     }
 
     convertCryptRateRows(data){
-        var result = {};
+        let result = {};
         data.filter(row =>{
             let dateString = new Date(parseInt(row[0])).toLocaleDateString('ja-JP');
             let convertedRow = {
@@ -170,7 +170,7 @@ class RowView extends React.Component {
     }
 
     convertFxRateRow(data){
-        var result = [];
+        let result = [];
 
         data.filter(row =>{
             let dateString = new Date(parseInt(row.date)).toLocaleDateString('ja-JP');
