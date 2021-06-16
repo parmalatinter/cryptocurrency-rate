@@ -37,7 +37,6 @@ class Input extends React.Component {
 class Button extends React.Component {
     constructor(props) {
         super(props);
-        // this.state = {isToggleOn: true};
 
         // This binding is necessary to make `this` work in the callback
         this.handleClick = this.handleClick.bind(this);
@@ -47,7 +46,7 @@ class Button extends React.Component {
         // render rates
         ReactDOM.render(
             e(RowView, null),
-            document.getElementById('root2')
+            document.getElementById('root3')
         );
     }
 
@@ -97,6 +96,11 @@ class CsvInput extends React.Component {
                     this.state = {file: file, csvData:buf.data};
                     glovalState.csvData = this.convertRow(buf.data);
                     console.log(glovalState)
+
+                    ReactDOM.render(
+                        e(Button, null),
+                        document.getElementById('root2')
+                    );
                 },
             });
         });
@@ -242,7 +246,7 @@ class RowView extends React.Component {
 ReactDOM.render(
     [
         e(CsvInput, null),
-        e(Input, null), e(Button, null)
+        e(Input, null)
     ],
     document.getElementById('root1')
 );
