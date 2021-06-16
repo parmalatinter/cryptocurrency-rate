@@ -77,6 +77,7 @@ class CsvInput extends React.Component {
             if(Number.isInteger(row.index)){
                 row.buy = parseFloat(row.buy)
                 row.sell = parseFloat(row.sell)
+                row.mining = parseFloat(row.mining)
                 row.date = new Date(parseInt(row.date)).toLocaleDateString('ja-JP');
                 result.push(row);
             }
@@ -231,6 +232,7 @@ class RowView extends React.Component {
                 e('td', { key : row.index + 'date'}, `${row.date}`),
                 e('td', { key : row.index + 'buy'}, `\tStock : ${row.buy}\t (\\${row.buy * rate * cryptRow.open})`),
                 e('td', { key : row.index + 'sell'}, `\tStock : ${row.sell}\t (\\${row.sell * rate * cryptRow.open})`),
+                e('td', { key : row.index + 'mining'}, `\tStock : ${row.mining}\t (\\${row.mining * rate * cryptRow.open})`),
             ]);
         });
 
