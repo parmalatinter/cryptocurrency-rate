@@ -28,8 +28,8 @@ class Input extends React.Component {
 
     render() {
         return [
-            e('label', { htmlFor : 'pair'}, `Pair：`),
-            e('input', { type : 'text', onChange : this.handleChange, value: this.state.value, name: 'pair'})
+            e('label', { key : 'label', htmlFor : 'pair' }, `Pair：`),
+            e('input', { key : 'input', type : 'text', onChange : this.handleChange, value: this.state.value, name: 'pair'})
         ];
     }
 }
@@ -52,8 +52,8 @@ class Button extends React.Component {
 
     render() {
         return [
-            e('button', { onClick : this.handleClick}, `Search`),
-            e('br', null)
+            e('button', { key : 'button', onClick : this.handleClick}, `Search`),
+            e('br', { key : 'br' })
         ];
     }
 }
@@ -98,7 +98,7 @@ class CsvInput extends React.Component {
                     console.log(glovalState)
 
                     ReactDOM.render(
-                        e(Button, null),
+                        e(Button, { key : 'button' }),
                         document.getElementById('root2')
                     );
                 },
@@ -113,8 +113,8 @@ class CsvInput extends React.Component {
 
     render() {
         return [
-            e('label', { htmlFor : 'csv'}, `csv：`),
-            e('input', { type : 'file', onChange : this.handleChange, filename: this.state.value, name: 'csv'})
+            e('label', { key : 'label', htmlFor : 'csv'}, `csv：`),
+            e('input', { key : 'input', type : 'file', onChange : this.handleChange, filename: this.state.value, name: 'csv'})
         ];
     }
 }
@@ -218,35 +218,62 @@ class RowView extends React.Component {
         console.log(glovalState)
     }
 
-    render() {
-        if (this.state.error) {
-            return e('div', null, `${this.state.error.message}`);
-        }
-        if ( !this.state.isLoadedCrypto || !this.state.isLoadedFx ) {
-            return e('div', null, `Loading...`);
-        }
+    renderBaseTable(){
+        return  e('table', { key : 'resultTable'}, [
+            e('thead', { key : 'thead'}, [
+                e('tr', { key : 'tr'}, [
+                    e('th', { key : 'th_Index'}, 'Index'),
+                    e('th', { key : 'th_Date'}, 'Date'),
+                    e('th', { key : 'th_Rate'}, 'Rate'),
+                    e('th', { key : 'th_Buy'}, 'Buy'),
+                    e('th', { key : 'th_Sell'}, 'Sell'),
+                    e('th', { key : 'th_Mining'}, 'Mining'),
+                ])
+            ]),
+            e('tbody', { key : 'tbody'}, [
+                this.renderRows()
+            ])
+        ]);
+    }
 
+    renderRows(){
+        let index = 1;
         return glovalState.csvData.map( row => {
+            index++;
             let key = row.date;
-            let index = 1;
             let cryptRow = this.state.cryptRows[key];
-            let rate  = this.state.fxRow[key].bid;
-            return  e('tr', { id : row.index, key : index}, [
+            let currencyRate  = this.state.fxRow[key].bid;
+            return  e('tr', { id : row.index + 'tr', key : row.index + 'tr'}, [
                 e('td', { key : row.index + 'index'}, `${row.index}`),
                 e('td', { key : row.index + 'date'}, `${row.date}`),
-                e('td', { key : row.index + 'buy'}, `\tStock : ${row.buy}\t (\\${row.buy * rate * cryptRow.open})`),
-                e('td', { key : row.index + 'sell'}, `\tStock : ${row.sell}\t (\\${row.sell * rate * cryptRow.open})`),
-                e('td', { key : row.index + 'mining'}, `\tStock : ${row.mining}\t (\\${row.mining * rate * cryptRow.open})`),
+                e('td', { key : row.index + 'rate'}, `${cryptRow.open}\$ \\${cryptRow.open * currencyRate}`),
+                e('td', { key : row.index + 'buy'}, `\tStock : ${row.buy}\t (\\${row.buy * currencyRate * cryptRow.open})`),
+                e('td', { key : row.index + 'sell'}, `\tStock : ${row.sell}\t (\\${row.sell * currencyRate * cryptRow.open})`),
+                e('td', { key : row.index + 'mining'}, `\tStock : ${row.mining}\t (\\${row.mining * currencyRate * cryptRow.open})`),
             ]);
         });
+    }
+
+    render() {
+        if (this.state.error) {
+            return e('div', { key : 'error'}, `${this.state.error.message}`);
+        }
+        if ( !this.state.isLoadedCrypto || !this.state.isLoadedFx ) {
+            return e('div', { key : 'loading'}, `Loading...`);
+        }
+
+        return e('p', { key : 'title'}, [
+            glovalState.coinName,
+            this.renderBaseTable()
+        ]);
 
     }
 }
 
 ReactDOM.render(
     [
-        e(CsvInput, null),
-        e(Input, null)
+        e(CsvInput, { key : 'csvInput'}),
+        e(Input, { key : 'input'})
     ],
     document.getElementById('root1')
 );
