@@ -5,7 +5,8 @@ const COIN_NAME = "1INCHUSDT";
 var glovalState = {
     fxRow : null,
     cryptRows : null,
-    rows : null
+    csvData : null,
+    coinName : null
 };
 
 // search
@@ -13,7 +14,7 @@ class Input extends React.Component {
     constructor(props) {
         super(props);
         this.state = {value: COIN_NAME};
-        glovalState['value'] = COIN_NAME;
+        glovalState.coinName = COIN_NAME;
 
         // This binding is necessary to make `this` work in the callback
         this.handleChange = this.handleChange.bind(this);
@@ -22,7 +23,7 @@ class Input extends React.Component {
     handleChange() {
         // render rates
         this.setState({value: event.target.value});
-        glovalState['value'] = event.target.value;
+        glovalState.coinName = event.target.value;
     }
 
     render() {
@@ -63,7 +64,7 @@ class CsvInput extends React.Component {
     constructor(props) {
         super(props);
         this.state = {file: null, csvData:null};
-        glovalState['csvData'] = null;
+        glovalState.csvData = null;
 
         // This binding is necessary to make `this` work in the callback
         this.handleChange = this.handleChange.bind(this);
@@ -93,7 +94,7 @@ class CsvInput extends React.Component {
                 complete:(buf) =>{
                     console.log(buf.data);
                     this.state = {file: file, csvData:buf.data};
-                    glovalState['csvData'] = this.convertRow(buf.data);
+                    glovalState.csvData = this.convertRow(buf.data);
                     console.log(glovalState)
                 },
             });
@@ -113,24 +114,6 @@ class CsvInput extends React.Component {
     }
 }
 
-class CsvButton extends React.Component {
-    constructor(props) {
-        super(props);
-        // this.state = {isToggleOn: true};
-
-        // This binding is necessary to make `this` work in the callback
-        this.handleClick = this.handleClick.bind(this);
-    }
-
-    handleClick() {
-        // render rates
-    }
-
-    render() {
-        return e('button', { onClick : this.handleClick}, `Set`);
-    }
-}
-
 class RowView extends React.Component {
     constructor(props) {
         super(props);
@@ -144,21 +127,38 @@ class RowView extends React.Component {
         }
     }
 
-    getCryptoRate(){
+    convertCryptRateRows(data){
+        var result = {};
+        data.filter(row =>{
+            let dateString = new Date(parseInt(row[0])).toLocaleDateString('ja-JP');
+            let convertedRow = {
+                'date' : dateString,
+                'open' : parseFloat(row[1]),
+                'high' : parseFloat(row[2]),
+                'low' : parseFloat(row[3]),
+                'close' : parseFloat(row[4])
+            }
+            result[dateString] = convertedRow;
+        });
+        return result;
+    }
+
+    getCryptRate(){
         // for api get
         $.ajax({
-            url: 'file:///C:/Users/Administrator/Desktop/test/klines.json?test=' + glovalState['value'],
+            url: 'file:///C:/Users/Administrator/Desktop/test/klines.json?test=' + glovalState.coinName,
             // url: 'https://api.binance.com/api/v3/ticker/price?symbol=1INCHUSDT',
             // url: 'https://api.binance.com/api/v3/klines?symbol=1INCHUSDT&interval=1d',
             dataType: 'json',
             cache: false,
             success: function(result) {
+                let rows = this.convertCryptRateRows(result);
                 this.setState({
                     isLoadedCrypto: true,
-                    rows: result,
-                    cryptRows: result,
+                    rows: rows,
+                    cryptRows: rows,
                 });
-                glovalState.cryptRows = this.state.cryptRows;
+                glovalState.cryptRows = rows;
             }.bind(this),
             error: function(xhr, status, error) {
                 this.setState({
@@ -171,12 +171,14 @@ class RowView extends React.Component {
 
     convertFxRateRow(data){
         var result = [];
+
         data.filter(row =>{
+            let dateString = new Date(parseInt(row.date)).toLocaleDateString('ja-JP');
             row.high = parseFloat(row.high)
             row.low = parseFloat(row.low)
             row.avarage = (row.high + row.low) / 2
-            row.date = new Date(parseInt(row.date)).toLocaleDateString('ja-JP');
-            result.push(row);
+            row.date = dateString;
+            result[dateString] = row;
         });
         return result;
     }
@@ -189,11 +191,12 @@ class RowView extends React.Component {
             dataType: 'json',
             cache: false,
             success: function(result) {
+                let row = this.convertFxRateRow(result.quotes);
                 this.setState({
                     isLoadedFx: true,
-                    fxRow: this.convertFxRateRow(result.quotes)
+                    fxRow: row
                 });
-                glovalState.fxRow = this.state.fxRow;
+                glovalState.fxRow = row;
             }.bind(this),
             error: function(xhr, status, error) {
                 this.setState({
@@ -205,7 +208,7 @@ class RowView extends React.Component {
     }
 
     componentDidMount() {
-        this.getCryptoRate();
+        this.getCryptRate();
         this.getFxRate();
         console.log(glovalState)
     }
@@ -214,30 +217,30 @@ class RowView extends React.Component {
         if (this.state.error) {
             return e('div', null, `${this.state.error.message}`);
         }
-        else if ( !this.state.isLoadedCrypto && !this.state.isLoadedFx ) {
+        if ( !this.state.isLoadedCrypto || !this.state.isLoadedFx ) {
             return e('div', null, `Loading...`);
         }
-        else {
-            return this.state.cryptRows.map( cryptRow => {
-                var index = 1;
-                var date = new Date(cryptRow[0]);
-                var dateString = date.toLocaleDateString('ja-JP');
-                return  e('tr', { id : index++, key : index}, [
-                    e('td', { key : dateString + index}, `${dateString}`),
-                    e('td', { key : cryptRow[1] + index + 'Open'}, `\t${cryptRow[1]}`),
-                    e('td', { key : cryptRow[2] + index + 'High'}, `\t${cryptRow[2]}`),
-                    e('td', { key : cryptRow[3] + index + 'Low'}, `\t${cryptRow[3]}`),
-                    e('td', { key : cryptRow[4] + index + 'Close'}, `\t${cryptRow[4]}`)
-                ]);
-            });
-        }
+
+        return glovalState.csvData.map( row => {
+            let key = row.date;
+            var index = 1;
+            var cryptRow = this.state.cryptRows[key];
+            var rate  = this.state.fxRow[key].bid;
+            return  e('tr', { id : row.index, key : index}, [
+                e('td', { key : row.index + 'index'}, `${row.index}`),
+                e('td', { key : row.index + 'date'}, `${row.date}`),
+                e('td', { key : row.index + 'buy'}, `\tStock : ${row.buy}\t (\\${row.buy * rate * cryptRow.open})`),
+                e('td', { key : row.index + 'sell'}, `\tStock : ${row.sell}\t (\\${row.sell * rate * cryptRow.open})`),
+            ]);
+        });
+
     }
 }
 
 ReactDOM.render(
     [
-        e(Input, null), e(Button, null),
-        e(CsvInput, null), e(CsvButton, null)
+        e(CsvInput, null),
+        e(Input, null), e(Button, null)
     ],
     document.getElementById('root1')
 );
