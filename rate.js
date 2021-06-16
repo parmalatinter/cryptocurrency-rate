@@ -1,8 +1,8 @@
-var e = React.createElement;
+let e = React.createElement;
 const ENABLE_FILTER_NAME = "PRICE_FILTER";
 const COIN_NAME = "1INCHUSDT";
 // const ExCHANGE_PARE_INDEX = 20; //usd/jpy
-var glovalState = {
+let glovalState = {
     fxRow : null,
     cryptRows : null,
     csvData : null,
@@ -223,9 +223,9 @@ class RowView extends React.Component {
 
         return glovalState.csvData.map( row => {
             let key = row.date;
-            var index = 1;
-            var cryptRow = this.state.cryptRows[key];
-            var rate  = this.state.fxRow[key].bid;
+            let index = 1;
+            let cryptRow = this.state.cryptRows[key];
+            let rate  = this.state.fxRow[key].bid;
             return  e('tr', { id : row.index, key : index}, [
                 e('td', { key : row.index + 'index'}, `${row.index}`),
                 e('td', { key : row.index + 'date'}, `${row.date}`),
