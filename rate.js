@@ -2,38 +2,53 @@ var e = React.createElement;
 const ENABLE_FILTER_NAME = "PRICE_FILTER";
 const COIN_NAME = "1INCHUSDT";
 // const ExCHANGE_PARE_INDEX = 20; //usd/jpy
-var glovalState = {
+let globalState = {
     fxRow : null,
     cryptRows : null,
     csvData : null,
+    amount : 0,
     coinName : null
 };
 
-// search
-class Input extends React.Component {
+// inputs : amount, pair
+class Inputs extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {value: COIN_NAME};
-        glovalState.coinName = COIN_NAME;
+        this.state = {
+            amount : 0,
+            coinName: COIN_NAME
+        };
+        globalState.coinName = COIN_NAME;
 
         // This binding is necessary to make `this` work in the callback
-        this.handleChange = this.handleChange.bind(this);
+        this.handleChangeAmount = this.handleChangeAmount.bind(this);
+        this.handleChangePair = this.handleChangePair.bind(this);
     }
 
-    handleChange() {
+    handleChangeAmount(event) {
         // render rates
-        this.setState({value: event.target.value});
-        glovalState.coinName = event.target.value;
+        let amount = parseFloat(event.target.value)
+        this.setState({amount: amount});
+        globalState.amount = amount;
+    }
+
+    handleChangePair(event) {
+        // render rates
+        this.setState({coinName: event.target.value});
+        globalState.coinName = event.target.value;
     }
 
     render() {
         return [
-            e('label', { key : 'label', htmlFor : 'pair' }, `Pair：`),
-            e('input', { key : 'input', type : 'text', onChange : this.handleChange, value: this.state.value, name: 'pair'})
+            e('label', { key : 'label1', htmlFor : 'amount' }, `Amount：`),
+            e('input', { key : 'input1', type : 'number', onChange : this.handleChangeAmount, value: this.state.value, name: 'amount'}),
+            e('label', { key : 'label2', htmlFor : 'pair' }, `Pair：`),
+            e('input', { key : 'input2', type : 'text', onChange : this.handleChangePair, value: this.state.coinName, name: 'pair'})
         ];
     }
 }
 
+// button : Search
 class Button extends React.Component {
     constructor(props) {
         super(props);
@@ -63,7 +78,7 @@ class CsvInput extends React.Component {
     constructor(props) {
         super(props);
         this.state = {file: null, csvData:null};
-        glovalState.csvData = null;
+        globalState.csvData = null;
 
         // This binding is necessary to make `this` work in the callback
         this.handleChange = this.handleChange.bind(this);
@@ -72,13 +87,15 @@ class CsvInput extends React.Component {
     convertRow(data){
         let result = [];
         data.filter(row =>{
-            row.index = parseInt(row.index);
-            if(Number.isInteger(row.index)){
-                row.buy = parseFloat(row.buy)
-                row.sell = parseFloat(row.sell)
-                row.mining = parseFloat(row.mining)
-                row.date = new Date(parseInt(row.date)).toLocaleDateString('ja-JP');
-                result.push(row);
+            let index = parseInt(row.index);
+            if(Number.isInteger(index)){
+                result.push({
+                    index : index,
+                    buy : parseFloat(row.buy),
+                    sell : parseFloat(row.sell),
+                    mining : parseFloat(row.mining),
+                    date : new Date(parseInt(row.date)).toLocaleDateString('ja-JP')
+                });
             }
         });
         return result;
@@ -94,8 +111,8 @@ class CsvInput extends React.Component {
                 complete:(buf) =>{
                     console.log(buf.data);
                     this.state = {file: file, csvData:buf.data};
-                    glovalState.csvData = this.convertRow(buf.data);
-                    console.log(glovalState)
+                    globalState.csvData = this.convertRow(buf.data);
+                    console.log(globalState)
 
                     ReactDOM.render(
                         e(Button, { key : 'button' }),
@@ -119,6 +136,7 @@ class CsvInput extends React.Component {
     }
 }
 
+// RowView : table
 class RowView extends React.Component {
     constructor(props) {
         super(props);
@@ -136,14 +154,13 @@ class RowView extends React.Component {
         let result = {};
         data.filter(row =>{
             let dateString = new Date(parseInt(row[0])).toLocaleDateString('ja-JP');
-            let convertedRow = {
+            result[dateString] = {
                 'date' : dateString,
                 'open' : parseFloat(row[1]),
                 'high' : parseFloat(row[2]),
                 'low' : parseFloat(row[3]),
                 'close' : parseFloat(row[4])
             }
-            result[dateString] = convertedRow;
         });
         return result;
     }
@@ -151,26 +168,26 @@ class RowView extends React.Component {
     getCryptRate(){
         // for api get
         $.ajax({
-            url: 'file:///C:/Users/Administrator/Desktop/test/klines.json?test=' + glovalState.coinName,
+            url: 'file:///C:/Users/Administrator/Desktop/test/klines.json?test=' + globalState.coinName,
             // url: 'https://api.binance.com/api/v3/ticker/price?symbol=1INCHUSDT',
             // url: 'https://api.binance.com/api/v3/klines?symbol=1INCHUSDT&interval=1d',
             dataType: 'json',
             cache: false,
-            success: function(result) {
+            success: (result => {
                 let rows = this.convertCryptRateRows(result);
                 this.setState({
                     isLoadedCrypto: true,
                     rows: rows,
                     cryptRows: rows,
                 });
-                glovalState.cryptRows = rows;
-            }.bind(this),
-            error: function(xhr, status, error) {
+                globalState.cryptRows = rows;
+            }).bind(this),
+            error: ((xhr, status, error) => {
                 this.setState({
                     isLoadedCrypto: true,
                     error: error
                 });
-            }.bind(this)
+            }).bind(this)
         });
     }
 
@@ -179,11 +196,12 @@ class RowView extends React.Component {
 
         data.filter(row =>{
             let dateString = new Date(parseInt(row.date)).toLocaleDateString('ja-JP');
-            row.high = parseFloat(row.high)
-            row.low = parseFloat(row.low)
-            row.avarage = (row.high + row.low) / 2
-            row.date = dateString;
-            result[dateString] = row;
+            result[dateString] = {
+                high : parseFloat(row.high),
+                low : parseFloat(row.low),
+                average : (parseFloat(row.high) + parseFloat(row.low)) / 2,
+                date : dateString
+            };
         });
         return result;
     }
@@ -195,27 +213,27 @@ class RowView extends React.Component {
             // url: 'https://www.gaitameonline.com/rateaj/getrate',
             dataType: 'json',
             cache: false,
-            success: function(result) {
+            success: (result => {
                 let row = this.convertFxRateRow(result.quotes);
                 this.setState({
                     isLoadedFx: true,
                     fxRow: row
                 });
-                glovalState.fxRow = row;
-            }.bind(this),
-            error: function(xhr, status, error) {
+                globalState.fxRow = row;
+            }).bind(this),
+            error: ((xhr, status, error) => {
                 this.setState({
                     isLoadedFx: true,
                     error: error
                 });
-            }.bind(this)
+            }).bind(this)
         });
     }
 
     componentDidMount() {
         this.getCryptRate();
         this.getFxRate();
-        console.log(glovalState)
+        console.log(globalState)
     }
 
     renderBaseTable(){
@@ -239,11 +257,11 @@ class RowView extends React.Component {
 
     renderRows(){
         let index = 1;
-        return glovalState.csvData.map( row => {
+        return globalState.csvData.map( row => {
             index++;
             let key = row.date;
             let cryptRow = this.state.cryptRows[key];
-            let currencyRate  = this.state.fxRow[key].bid;
+            let currencyRate  = this.state.fxRow[key].average;
             return  e('tr', { id : row.index + 'tr', key : row.index + 'tr'}, [
                 e('td', { key : row.index + 'index'}, `${row.index}`),
                 e('td', { key : row.index + 'date'}, `${row.date}`),
@@ -265,7 +283,7 @@ class RowView extends React.Component {
         }
 
         return e('p', { key : 'title'}, [
-            glovalState.coinName,
+            globalState.coinName,
             this.renderBaseTable()
         ]);
 
@@ -275,7 +293,7 @@ class RowView extends React.Component {
 ReactDOM.render(
     [
         e(CsvInput, { key : 'csvInput'}),
-        e(Input, { key : 'input'})
+        e(Inputs, { key : 'inputs'})
     ],
     document.getElementById('root1')
 );
