@@ -288,30 +288,29 @@ class RowView extends React.Component {
     }
 
     exportCsv(){
-        var fields = Object.keys(globalState.csvData[0])
-        var replacer = function(key, value) { return value === null ? '' : value }
-        var csv = globalState.csvData.map(function(row){
+        let fields = Object.keys(globalState.csvData[0])
+        let replacer = function(key, value) { return value === null ? '' : value }
+        let csv = globalState.csvData.map(function(row){
             return fields.map(function(fieldName){
                 return JSON.stringify(row[fieldName], replacer)
             }).join(',')
-        })
+        });
         csv.unshift(fields.join(',')) // add header column
         csv = csv.join('\r\n');
 
-        let BLOB = new Blob( [ csv ], { 'type': 'text/plain' } );
-        let CAN_USE_SAVE_BLOB = window.navigator.msSaveBlob !== undefined;
+        let blob = new Blob( [ csv ], { 'type': 'text/plain' } );
         let fileName = `${COIN_NAME}.csv`;
 
-        if ( CAN_USE_SAVE_BLOB ) {
-            window.navigator.msSaveBlob( BLOB, fileName );
+        if ( window.navigator.msSaveBlob !== undefined ) {
+            window.navigator.msSaveBlob( blob, fileName );
             return;
         }
 
-        const TEMP_ANCHOR   = document.createElement( 'a' );
-        TEMP_ANCHOR.href    = URL.createObjectURL( BLOB );
-        TEMP_ANCHOR.setAttribute( 'download', fileName );
+        let anchor   = document.createElement( 'a' );
+        anchor.href    = URL.createObjectURL( blob );
+        anchor.setAttribute( 'download', fileName );
 
-        TEMP_ANCHOR.dispatchEvent( new MouseEvent( 'click' ) );
+        anchor.dispatchEvent( new MouseEvent( 'click' ) );
     }
 
     // Export Csv
