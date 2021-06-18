@@ -52,20 +52,24 @@ class Inputs extends React.Component {
 class Button extends React.Component {
     constructor(props) {
         super(props);
-
+        this.state = {isClick:false};
         // This binding is necessary to make `this` work in the callback
         this.handleClick = this.handleClick.bind(this);
     }
 
     handleClick() {
-        // render rates
-        ReactDOM.render(
-            e(RowView, null),
-            document.getElementById('root3')
-        );
+        this.state.isClick = true;
+        this.render();
     }
 
     render() {
+         if (this.state.isClick ) {
+            ReactDOM.render(
+                e(RowView, null),
+                document.getElementById('root3')
+            );
+            return;
+         }
         return [
             e('button', { key : 'button', onClick : this.handleClick}, `Search`),
             e('br', { key : 'br' })
@@ -77,7 +81,7 @@ class Button extends React.Component {
 class CsvInput extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {file: null, csvData:null};
+        this.state = {csvData:null};
         globalState.csvData = null;
 
         // This binding is necessary to make `this` work in the callback
@@ -86,15 +90,17 @@ class CsvInput extends React.Component {
 
     convertRow(data){
         let result = [];
+        let index = 0;
         data.filter(row =>{
-            let index = parseInt(row.index);
-            if(Number.isInteger(index)){
+            index++;
+            if(Object.values(row).length > 1){
                 result.push({
                     index : index,
-                    buy : parseFloat(row.buy),
-                    sell : parseFloat(row.sell),
-                    mining : parseFloat(row.mining),
-                    date : new Date(parseInt(row.date)).toLocaleDateString('ja-JP')
+                    buy : row.Action === 'BUY' ? parseFloat(row.Volume) : 0,
+                    sell : row.Action === 'SELL' ? parseFloat(row.Volume) : 0,
+                    price : parseFloat(row.Price),
+                    mining : 0, //parseFloat(row.mining),
+                    date : new Date(parseInt(row.Timestamp)).toLocaleDateString('ja-JP')
                 });
             }
         });
@@ -107,17 +113,9 @@ class CsvInput extends React.Component {
             Papa.parse(file, {
                 header: true,
                 delimiter:',',
-
                 complete:(buf) =>{
                     console.log(buf.data);
-                    this.state = {file: file, csvData:buf.data};
-                    globalState.csvData = this.convertRow(buf.data);
-                    console.log(globalState)
-
-                    ReactDOM.render(
-                        e(Button, { key : 'button' }),
-                        document.getElementById('root2')
-                    );
+                    resolve(this.convertRow(buf.data)); // resolve(渡したい値);
                 },
             });
         });
@@ -125,10 +123,23 @@ class CsvInput extends React.Component {
 
     handleChange(event) {
         // render rates
-        this.getCSV(event.target.files[0]);
+        this.getCSV(event.target.files[0]).then(csvData => {
+            this.state = {csvData: csvData};
+            globalState.csvData = csvData;
+            console.log(globalState);
+            this.render();
+        });
     }
 
     render() {
+        if (this.state.csvData ) {
+            ReactDOM.render(
+                e(Button, { key : 'button' }),
+                document.getElementById('root2')
+            );
+            return;
+        }
+
         return [
             e('label', { key : 'label', htmlFor : 'csv'}, `csv：`),
             e('input', { key : 'input', type : 'file', onChange : this.handleChange, filename: this.state.value, name: 'csv'})
@@ -147,7 +158,8 @@ class RowView extends React.Component {
             cryptRows: [],
             fxRow: [],
             rows: []
-        }
+        };
+        this.handleClick = this.handleClick.bind(this);
     }
 
     convertCryptRateRows(data){
@@ -245,7 +257,7 @@ class RowView extends React.Component {
                     e('th', { key : 'th_Rate'}, 'Rate'),
                     e('th', { key : 'th_Buy'}, 'Buy'),
                     e('th', { key : 'th_Sell'}, 'Sell'),
-                    e('th', { key : 'th_Fee'}, 'Fee'),
+                    // e('th', { key : 'th_Fee'}, 'Fee'),
                     e('th', { key : 'th_Mining'}, 'Mining'),
                 ])
             ]),
@@ -265,13 +277,46 @@ class RowView extends React.Component {
             return  e('tr', { id : row.index + 'tr', key : row.index + 'tr'}, [
                 e('td', { key : row.index + 'index'}, `${row.index}`),
                 e('td', { key : row.index + 'date'}, `${row.date}`),
-                e('td', { key : row.index + 'rate'}, `${cryptRow.open}\$ \\${cryptRow.open * currencyRate}`),
+                // e('td', { key : row.index + 'rate'}, `${cryptRow.open}\$ \\${cryptRow.open * currencyRate}`),
+                e('td', { key : row.index + 'rate'}, `\\${row.price}`),
                 e('td', { key : row.index + 'buy'}, `\tStock : ${row.buy}\t (\\${row.buy * currencyRate * cryptRow.open})`),
                 e('td', { key : row.index + 'sell'}, `\tStock : ${row.sell}\t (\\${row.sell * currencyRate * cryptRow.open})`),
-                e('td', { key : row.index + 'fee'}, `\t${row.fee}%\t (\\${row.fee * currencyRate * cryptRow.open * (row.buy + row.sell)})`),
+                // e('td', { key : row.index + 'fee'}, `\t${row.fee}%\t (\\${row.fee * currencyRate * cryptRow.open * (row.buy + row.sell)})`),
                 e('td', { key : row.index + 'mining'}, `\tStock : ${row.mining}\t (\\${row.mining * currencyRate * cryptRow.open})`),
             ]);
         });
+    }
+
+    exportCsv(){
+        var fields = Object.keys(globalState.csvData[0])
+        var replacer = function(key, value) { return value === null ? '' : value }
+        var csv = globalState.csvData.map(function(row){
+            return fields.map(function(fieldName){
+                return JSON.stringify(row[fieldName], replacer)
+            }).join(',')
+        })
+        csv.unshift(fields.join(',')) // add header column
+        csv = csv.join('\r\n');
+
+        let BLOB = new Blob( [ csv ], { 'type': 'text/plain' } );
+        let CAN_USE_SAVE_BLOB = window.navigator.msSaveBlob !== undefined;
+        let fileName = `${COIN_NAME}.csv`;
+
+        if ( CAN_USE_SAVE_BLOB ) {
+            window.navigator.msSaveBlob( BLOB, fileName );
+            return;
+        }
+
+        const TEMP_ANCHOR   = document.createElement( 'a' );
+        TEMP_ANCHOR.href    = URL.createObjectURL( BLOB );
+        TEMP_ANCHOR.setAttribute( 'download', fileName );
+
+        TEMP_ANCHOR.dispatchEvent( new MouseEvent( 'click' ) );
+    }
+
+    // Export Csv
+    handleClick(event) {
+        this.exportCsv();
     }
 
     render() {
@@ -284,7 +329,8 @@ class RowView extends React.Component {
 
         return e('p', { key : 'title'}, [
             globalState.coinName,
-            this.renderBaseTable()
+            this.renderBaseTable(),
+            e('button', { key : 'button', onClick : this.handleClick}, `Export`)
         ]);
 
     }
