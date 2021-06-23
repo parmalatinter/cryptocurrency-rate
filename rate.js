@@ -1,3 +1,20 @@
+
+// var xhr = new XMLHttpRequest();
+// xhr.withCredentials = true;
+
+// xhr.addEventListener("readystatechange", function() {
+//   if(this.readyState === 4) {
+//     console.log(this.responseText);
+//   }
+// });
+
+// YOUR_APIKEY = '42a437deb4794cf2bbcce19f56c6ae91'
+// https://api.currencyfreaks.com/latest/convert?apikey=42a437deb4794cf2bbcce19f56c6ae91&from=USD&to=PKR&amount=500
+// xhr.open("GET", `https://api.currencyfreaks.com/latest/convert?apikey=${YOUR_APIKEY}&from=USD&to=PKR&amount=500`);
+
+// xhr.send();
+
+
 var e = React.createElement;
 const ENABLE_FILTER_NAME = "PRICE_FILTER";
 const COIN_NAME = "1INCHUSDT";
@@ -96,11 +113,11 @@ class CsvInput extends React.Component {
             if(Object.values(row).length > 1){
                 result.push({
                     index : index,
-                    buy : row.Action === 'BUY' ? parseFloat(row.Volume) : 0,
-                    sell : row.Action === 'SELL' ? parseFloat(row.Volume) : 0,
+                    buy : row.Type === 'BUY' ? parseFloat(row.Amount) : 0,
+                    sell : row.Type === 'SELL' ? parseFloat(row.Amount) : 0,
                     price : parseFloat(row.Price),
                     mining : 0, //parseFloat(row.mining),
-                    date : new Date(parseInt(row.Timestamp)).toLocaleDateString('ja-JP')
+                    date : new Date(row['Date(UTC)']).toLocaleDateString('ja-JP')
                 });
             }
         });
@@ -180,8 +197,8 @@ class RowView extends React.Component {
     getCryptRate(){
         // for api get
         $.ajax({
-            url: 'file:///C:/Users/Administrator/Desktop/test/klines.json?test=' + globalState.coinName,
-            // url: 'https://api.binance.com/api/v3/ticker/price?symbol=1INCHUSDT',
+            //url: 'file:///C:/Users/Administrator/Desktop/test/klines.json?test=' + globalState.coinName,
+            url: 'https://api.binance.com/api/v3/ticker/price?symbol=1INCHUSDT',
             // url: 'https://api.binance.com/api/v3/klines?symbol=1INCHUSDT&interval=1d',
             dataType: 'json',
             cache: false,
@@ -221,8 +238,8 @@ class RowView extends React.Component {
     getFxRate(){
         // for api get
         $.ajax({
+            // https://stooq.com/q/d/?s=usdjpy&c=0から作成する
             url: 'file:///C:/Users/Administrator/Desktop/test/fx-rate.json',
-            // url: 'https://www.gaitameonline.com/rateaj/getrate',
             dataType: 'json',
             cache: false,
             success: (result => {
